@@ -88,14 +88,16 @@ final: prev: (
         inherit (cfg.firmware.uefi.capsuleAuthentication) trustedPublicCertPemFile;
       });
 
-      jetsonStandaloneMMOptee = prevJetpack.jetsonStandaloneMMOptee.override {
+      jetsonStandaloneMMOptee = prevJetpack.jetsonStandaloneMMOptee.override ({
         debugMode = cfg.firmware.uefi.debugMode;
         errorLevelInfo = cfg.firmware.uefi.errorLevelInfo;
         edk2NvidiaPatches = cfg.firmware.uefi.edk2NvidiaPatches;
         edk2UefiPatches = cfg.firmware.uefi.edk2UefiPatches;
-        extraPackages = cfg.firmware.uefi.standaloneMMExtraPackages;
         inherit (finalJetpack) socFamily;
-      };
+      } // lib.optionalAttrs (prevJetpack.l4tAtLeast "36") {
+        # r36+ only: r35's stuart argument set is closed, so it can't accept this.
+        extraPackages = cfg.firmware.uefi.standaloneMMExtraPackages;
+      });
 
       flash-tools = prevJetpack.flash-tools.overrideAttrs ({ patches ? [ ], postPatch ? "", ... }: {
         patches = patches ++ cfg.flashScriptOverrides.patches;
